@@ -1,0 +1,66 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Detalle de Partido - Tu Equipo Amateur{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card shadow">
+            <div class="card-header {% if partido.estado == 'FINALIZADO' %}bg-success{% elif partido.estado == 'CANCELADO' %}bg-danger{% else %}bg-primary{% endif %} text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-futbol"></i> {{ partido.rival }}
+                    <span class="badge bg-light text-dark float-end">{{ partido.get_estado_display }}</span>
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <p><i class="fas fa-calendar"></i> <strong>Fecha:</strong> {{ partido.fecha }}</p>
+                        <p><i class="fas fa-clock"></i> <strong>Hora:</strong> {{ partido.hora }}</p>
+                        <p><i class="fas fa-map-marker-alt"></i> <strong>Lugar:</strong> {{ partido.lugar }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><i class="fas fa-users"></i> <strong>Rival:</strong> {{ partido.rival }}</p>
+                        <p><i class="fas fa-trophy"></i> <strong>Resultado:</strong> 
+                            {% if partido.estado == 'FINALIZADO' %}
+                                <span class="badge bg-success">{{ partido.get_resultado }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Sin disputar</span>
+                            {% endif %}
+                        </p>
+                        <p><i class="fas fa-user"></i> <strong>Creado por:</strong> {{ partido.creado_por.get_full_name|default:partido.creado_por.username }}</p>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Aquí aparecerán las alineaciones y estadísticas del partido cuando estén disponibles.
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'partidos:lista' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+                <a href="{% url 'alineaciones:ver' partido.pk %}" class="btn btn-dark">
+                    <i class="fas fa-clipboard-list"></i> Ver Alineación
+                </a>
+                {% if user.perfil.rol == 'DT' %}
+                    <a href="{% url 'asistencias:resumen' partido.pk %}" class="btn btn-info">
+                        <i class="fas fa-users"></i> Ver Asistencias
+                    </a>
+                    <a href="{% url 'partidos:editar' partido.pk %}" class="btn btn-warning">
+                        <i class="fas fa-edit"></i> Editar
+                    </a>
+                    {% if partido.estado != 'FINALIZADO' %}
+                    <a href="{% url 'partidos:resultado' partido.pk %}" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Cargar Resultado
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'partidos:eliminar' partido.pk %}" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Eliminar
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,130 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Alineación - Tu Equipo Amateur{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-clipboard-list"></i> Alineación del Partido</h2>
+    <a href="{% url 'partidos:detalle' partido.pk %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Volver al Partido
+    </a>
+</div>
+
+<!-- Info del partido -->
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <h4><i class="fas fa-futbol"></i> vs {{ partido.rival }}</h4>
+        <div class="row">
+            <div class="col-md-4">
+                <p><i class="fas fa-calendar"></i> {{ partido.fecha }}</p>
+            </div>
+            <div class="col-md-4">
+                <p><i class="fas fa-clock"></i> {{ partido.hora }}</p>
+            </div>
+            <div class="col-md-4">
+                <p><i class="fas fa-map-marker-alt"></i> {{ partido.lugar }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Botón agregar jugador -->
+{% if es_dt %}
+<div class="mb-3">
+    <a href="{% url 'alineaciones:agregar' partido.pk %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Agregar Jugador a la Alineación
+    </a>
+</div>
+{% endif %}
+
+<div class="row">
+    <!-- TITULARES -->
+    <div class="col-md-6">
+        <div class="card shadow mb-3">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-star"></i> Titulares ({{ titulares.count }})
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if titulares %}
+                <div class="list-group">
+                    {% for a in titulares %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>#{{ a.jugador.dorsal|default:"-" }}</strong>
+                            {{ a.jugador.get_nombre_completo }}
+                            <br>
+                            <small class="text-muted">
+                                {{ a.jugador.get_posicion_display|default:"Sin posición" }}
+                                {% if a.posicion_cancha %}
+                                    | {{ a.posicion_cancha }}
+                                {% endif %}
+                            </small>
+                        </div>
+                        {% if es_dt %}
+                        <div>
+                            <a href="{% url 'alineaciones:cambiar_tipo' a.pk %}" 
+                               class="btn btn-sm btn-warning" title="Cambiar a suplente">
+                                <i class="fas fa-exchange-alt"></i>
+                            </a>
+                            <a href="{% url 'alineaciones:eliminar' a.pk %}" 
+                               class="btn btn-sm btn-danger" title="Eliminar">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center mb-0">No hay titulares asignados</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- SUPLENTES -->
+    <div class="col-md-6">
+        <div class="card shadow mb-3">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chair"></i> Suplentes ({{ suplentes.count }})
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if suplentes %}
+                <div class="list-group">
+                    {% for a in suplentes %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>#{{ a.jugador.dorsal|default:"-" }}</strong>
+                            {{ a.jugador.get_nombre_completo }}
+                            <br>
+                            <small class="text-muted">
+                                {{ a.jugador.get_posicion_display|default:"Sin posición" }}
+                            </small>
+                        </div>
+                        {% if es_dt %}
+                        <div>
+                            <a href="{% url 'alineaciones:cambiar_tipo' a.pk %}" 
+                               class="btn btn-sm btn-success" title="Cambiar a titular">
+                                <i class="fas fa-exchange-alt"></i>
+                            </a>
+                            <a href="{% url 'alineaciones:eliminar' a.pk %}" 
+                               class="btn btn-sm btn-danger" title="Eliminar">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center mb-0">No hay suplentes asignados</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

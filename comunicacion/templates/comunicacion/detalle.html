@@ -1,0 +1,42 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ anuncio.titulo }} - Tu Equipo Amateur{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card shadow border-start border-4 border-{{ anuncio.get_prioridad_color }}">
+            <div class="card-header bg-{{ anuncio.get_prioridad_color }} text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">{{ anuncio.titulo }}</h4>
+                    <span class="badge bg-light text-dark">{{ anuncio.get_prioridad_display }}</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="mb-3 text-muted">
+                    <i class="fas fa-user"></i> {{ anuncio.autor.get_full_name|default:anuncio.autor.username }}
+                    | <i class="fas fa-calendar"></i> {{ anuncio.fecha_publicacion|date:"d/m/Y H:i" }}
+                    {% if anuncio.fecha_actualizacion != anuncio.fecha_publicacion %}
+                        | <i class="fas fa-edit"></i> Editado: {{ anuncio.fecha_actualizacion|date:"d/m/Y H:i" }}
+                    {% endif %}
+                </div>
+                <hr>
+                <div style="white-space: pre-wrap;">{{ anuncio.contenido }}</div>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'comunicacion:lista' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+                {% if es_dt %}
+                <a href="{% url 'comunicacion:editar' anuncio.pk %}" class="btn btn-warning">
+                    <i class="fas fa-edit"></i> Editar
+                </a>
+                <a href="{% url 'comunicacion:eliminar' anuncio.pk %}" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Eliminar
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

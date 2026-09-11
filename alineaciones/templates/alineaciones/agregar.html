@@ -1,0 +1,64 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Agregar a la Alineación - Tu Equipo Amateur{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-user-plus"></i> Agregar a la Alineación</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h5><i class="fas fa-futbol"></i> vs {{ partido.rival }}</h5>
+                    <p class="mb-0"><i class="fas fa-calendar"></i> {{ partido.fecha }} - {{ partido.hora }}</p>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.jugador.id_for_label }}" class="form-label">Jugador *</label>
+                        {{ form.jugador }}
+                        {% if form.jugador.errors %}
+                            <div class="text-danger small">{{ form.jugador.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.tipo.id_for_label }}" class="form-label">Tipo *</label>
+                        {{ form.tipo }}
+                        {% if form.tipo.errors %}
+                            <div class="text-danger small">{{ form.tipo.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.posicion_cancha.id_for_label }}" class="form-label">
+                            {{ form.posicion_cancha.label }}
+                        </label>
+                        {{ form.posicion_cancha }}
+                        <small class="text-muted">Ej: Lateral derecho, Mediocampista ofensivo</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.orden.id_for_label }}" class="form-label">{{ form.orden.label }}</label>
+                        {{ form.orden }}
+                        <small class="text-muted">Para ordenar la lista</small>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Agregar
+                        </button>
+                        <a href="{% url 'alineaciones:ver' partido.pk %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

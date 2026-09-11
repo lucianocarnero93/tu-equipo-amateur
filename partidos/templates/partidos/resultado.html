@@ -1,0 +1,55 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Cargar Resultado - Tu Equipo Amateur{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0"><i class="fas fa-trophy"></i> Cargar Resultado</h4>
+            </div>
+            <div class="card-body">
+                <h5 class="text-center">{{ partido.rival }}</h5>
+                <p class="text-center text-muted">{{ partido.fecha }} - {{ partido.hora }}</p>
+                <hr>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.goles_local.id_for_label }}" class="form-label">Goles de Tu Equipo</label>
+                            {{ form.goles_local }}
+                            {% if form.goles_local.errors %}
+                                <div class="text-danger small">{{ form.goles_local.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.goles_visitante.id_for_label }}" class="form-label">Goles del Rival</label>
+                            {{ form.goles_visitante }}
+                            {% if form.goles_visitante.errors %}
+                                <div class="text-danger small">{{ form.goles_visitante.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.estado.id_for_label }}" class="form-label">Estado</label>
+                        {{ form.estado }}
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Guardar Resultado
+                        </button>
+                        <a href="{% url 'partidos:detalle' partido.pk %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,214 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Resumen de Asistencias - Tu Equipo Amateur{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-clipboard-list"></i> Resumen de Asistencias</h2>
+    <a href="{% url 'partidos:detalle' partido.pk %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Volver al Partido
+    </a>
+</div>
+
+<!-- Info del partido -->
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <h4><i class="fas fa-futbol"></i> vs {{ partido.rival }}</h4>
+        <div class="row">
+            <div class="col-md-4">
+                <p><i class="fas fa-calendar"></i> {{ partido.fecha }}</p>
+            </div>
+            <div class="col-md-4">
+                <p><i class="fas fa-clock"></i> {{ partido.hora }}</p>
+            </div>
+            <div class="col-md-4">
+                <p><i class="fas fa-map-marker-alt"></i> {{ partido.lugar }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Estadísticas generales -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stat-card card border-success">
+            <div class="card-body text-center">
+                <i class="fas fa-check-circle fa-2x text-success"></i>
+                <h3 class="mt-2">{{ total_confirmados }}</h3>
+                <p class="text-muted mb-0">Confirmados</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card card border-warning">
+            <div class="card-body text-center">
+                <i class="fas fa-question-circle fa-2x text-warning"></i>
+                <h3 class="mt-2">{{ dudas.count }}</h3>
+                <p class="text-muted mb-0">Dudas</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card card border-danger">
+            <div class="card-body text-center">
+                <i class="fas fa-times-circle fa-2x text-danger"></i>
+                <h3 class="mt-2">{{ rechazados.count }}</h3>
+                <p class="text-muted mb-0">No van</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card card border-secondary">
+            <div class="card-body text-center">
+                <i class="fas fa-hourglass-half fa-2x text-secondary"></i>
+                <h3 class="mt-2">{{ sin_respuesta.count }}</h3>
+                <p class="text-muted mb-0">Sin responder</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmados -->
+<div class="card shadow mb-3">
+    <div class="card-header bg-success text-white">
+        <h5 class="mb-0">
+            <i class="fas fa-check-circle"></i> Confirmados ({{ confirmados.count }})
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if confirmados %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Dorsal</th>
+                        <th>Jugador</th>
+                        <th>Posición</th>
+                        <th>Comentario</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in confirmados %}
+                    <tr>
+                        <td><strong>{{ a.jugador.dorsal|default:"-" }}</strong></td>
+                        <td>{{ a.jugador.get_nombre_completo }}</td>
+                        <td>{{ a.jugador.get_posicion_display|default:"-" }}</td>
+                        <td>{{ a.comentario|default:"-" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted text-center mb-0">Nadie ha confirmado todavía</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Dudas -->
+<div class="card shadow mb-3">
+    <div class="card-header bg-warning text-dark">
+        <h5 class="mb-0">
+            <i class="fas fa-question-circle"></i> Dudas ({{ dudas.count }})
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if dudas %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Dorsal</th>
+                        <th>Jugador</th>
+                        <th>Comentario</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in dudas %}
+                    <tr>
+                        <td><strong>{{ a.jugador.dorsal|default:"-" }}</strong></td>
+                        <td>{{ a.jugador.get_nombre_completo }}</td>
+                        <td>{{ a.comentario|default:"-" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted text-center mb-0">No hay dudas registradas</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Rechazados -->
+<div class="card shadow mb-3">
+    <div class="card-header bg-danger text-white">
+        <h5 class="mb-0">
+            <i class="fas fa-times-circle"></i> No van ({{ rechazados.count }})
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if rechazados %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Dorsal</th>
+                        <th>Jugador</th>
+                        <th>Motivo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in rechazados %}
+                    <tr>
+                        <td><strong>{{ a.jugador.dorsal|default:"-" }}</strong></td>
+                        <td>{{ a.jugador.get_nombre_completo }}</td>
+                        <td>{{ a.comentario|default:"-" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted text-center mb-0">Nadie ha rechazado</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Sin responder -->
+<div class="card shadow">
+    <div class="card-header bg-secondary text-white">
+        <h5 class="mb-0">
+            <i class="fas fa-hourglass-half"></i> Sin responder ({{ sin_respuesta.count }})
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if sin_respuesta %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Dorsal</th>
+                        <th>Jugador</th>
+                        <th>Posición</th>
+                        <th>Teléfono</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for jugador in sin_respuesta %}
+                    <tr>
+                        <td><strong>{{ jugador.dorsal|default:"-" }}</strong></td>
+                        <td>{{ jugador.get_nombre_completo }}</td>
+                        <td>{{ jugador.get_posicion_display|default:"-" }}</td>
+                        <td>{{ jugador.telefono|default:"-" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted text-center mb-0">¡Todos respondieron!</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

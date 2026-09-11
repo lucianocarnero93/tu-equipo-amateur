@@ -1,0 +1,80 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Tablón de Anuncios - Tu Equipo Amateur{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-bullhorn"></i> Tablón de Anuncios</h2>
+    {% if es_dt %}
+    <a href="{% url 'comunicacion:crear' %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Nuevo Anuncio
+    </a>
+    {% endif %}
+</div>
+
+<!-- Filtros por prioridad -->
+<div class="mb-4">
+    <a href="{% url 'comunicacion:lista' %}" 
+       class="btn btn-sm {% if not prioridad_actual %}btn-primary{% else %}btn-outline-primary{% endif %}">
+        Todos
+    </a>
+    <a href="?prioridad=URGENTE" 
+       class="btn btn-sm {% if prioridad_actual == 'URGENTE' %}btn-danger{% else %}btn-outline-danger{% endif %}">
+        🚨 Urgentes
+    </a>
+    <a href="?prioridad=ALTA" 
+       class="btn btn-sm {% if prioridad_actual == 'ALTA' %}btn-warning{% else %}btn-outline-warning{% endif %}">
+        ⚠️ Alta
+    </a>
+    <a href="?prioridad=MEDIA" 
+       class="btn btn-sm {% if prioridad_actual == 'MEDIA' %}btn-info{% else %}btn-outline-info{% endif %}">
+        ℹ️ Media
+    </a>
+    <a href="?prioridad=BAJA" 
+       class="btn btn-sm {% if prioridad_actual == 'BAJA' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">
+        📝 Baja
+    </a>
+</div>
+
+<!-- Lista de anuncios -->
+{% if anuncios %}
+<div class="row">
+    {% for anuncio in anuncios %}
+    <div class="col-md-6 mb-4">
+        <div class="card shadow h-100 border-start border-4 border-{{ anuncio.get_prioridad_color }}">
+            <div class="card-header bg-{{ anuncio.get_prioridad_color }} text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{{ anuncio.titulo }}</h5>
+                    <span class="badge bg-light text-dark">{{ anuncio.get_prioridad_display }}</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="card-text">{{ anuncio.contenido|truncatewords:30 }}</p>
+                <small class="text-muted">
+                    <i class="fas fa-user"></i> {{ anuncio.autor.get_full_name|default:anuncio.autor.username }}
+                    | <i class="fas fa-calendar"></i> {{ anuncio.fecha_publicacion|date:"d/m/Y H:i" }}
+                </small>
+            </div>
+            <div class="card-footer bg-transparent">
+                <a href="{% url 'comunicacion:detalle' anuncio.pk %}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-eye"></i> Leer más
+                </a>
+                {% if es_dt %}
+                <a href="{% url 'comunicacion:editar' anuncio.pk %}" class="btn btn-sm btn-warning">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <a href="{% url 'comunicacion:eliminar' anuncio.pk %}" class="btn btn-sm btn-danger">
+                    <i class="fas fa-trash"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info text-center">
+    <i class="fas fa-info-circle"></i> No hay anuncios publicados.
+</div>
+{% endif %}
+{% endblock %}

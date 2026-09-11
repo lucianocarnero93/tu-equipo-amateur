@@ -1,0 +1,87 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Detalle de Jugador - Tu Equipo Amateur{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-user-circle fa-5x text-primary"></i>
+                </div>
+                <h4>{{ jugador.get_nombre_completo }}</h4>
+                <p>
+                    <span class="badge bg-secondary">#{{ jugador.dorsal|default:"Sin dorsal" }}</span>
+                    <span class="badge bg-info">{{ jugador.get_posicion_display|default:"Sin posición" }}</span>
+                </p>
+                <hr>
+                <p><i class="fas fa-envelope"></i> {{ jugador.email }}</p>
+                <p><i class="fas fa-phone"></i> {{ jugador.telefono|default:"No registrado" }}</p>
+                <p><i class="fas fa-calendar"></i> {{ jugador.fecha_nacimiento|default:"No registrada" }}</p>
+                <p>
+                    <i class="fas fa-check-circle"></i> 
+                    {% if jugador.activo %}
+                        <span class="text-success">Jugador Activo</span>
+                    {% else %}
+                        <span class="text-danger">Jugador Inactivo</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Estadísticas del Jugador</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Aquí aparecerán las estadísticas del jugador cuando tenga partidos registrados.
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="stat-card card">
+                            <div class="card-body text-center">
+                                <h3>0</h3>
+                                <p class="text-muted">Partidos Jugados</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card card">
+                            <div class="card-body text-center">
+                                <h3>0</h3>
+                                <p class="text-muted">Goles</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card card">
+                            <div class="card-body text-center">
+                                <h3>0</h3>
+                                <p class="text-muted">Asistencias</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-3">
+            {% if user.perfil.rol == 'DT' %}
+            <a href="{% url 'jugadores:editar' jugador.pk %}" class="btn btn-warning">
+                <i class="fas fa-edit"></i> Editar
+            </a>
+            <a href="{% url 'jugadores:eliminar' jugador.pk %}" class="btn btn-danger">
+                <i class="fas fa-trash"></i> Eliminar
+            </a>
+            {% endif %}
+            <a href="{% url 'jugadores:lista' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

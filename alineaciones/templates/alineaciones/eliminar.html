@@ -1,0 +1,36 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Eliminar de la Alineación - Tu Equipo Amateur{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación</h4>
+            </div>
+            <div class="card-body text-center">
+                <p>¿Estás seguro que deseas eliminar a este jugador de la alineación?</p>
+                <h5>
+                    #{{ alineacion.jugador.dorsal|default:"-" }} 
+                    {{ alineacion.jugador.get_nombre_completo }}
+                </h5>
+                <p class="text-muted">
+                    {{ alineacion.get_tipo_display }} en el partido vs {{ alineacion.partido.rival }}
+                </p>
+                <p class="text-danger"><i class="fas fa-exclamation-circle"></i> Esta acción no se puede deshacer.</p>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Sí, Eliminar
+                    </button>
+                    <a href="{% url 'alineaciones:ver' alineacion.partido.pk %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancelar
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Mi Perfil - Tu Equipo Amateur{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-user-circle fa-5x text-primary"></i>
+                </div>
+                <h4>{{ usuario.get_full_name }}</h4>
+                <p class="text-muted">@{{ usuario.username }}</p>
+                <p>
+                    <span class="badge bg-info">
+                        {{ usuario.perfil.get_rol_display }}
+                    </span>
+                </p>
+                <hr>
+                <p>
+                    <i class="fas fa-envelope"></i> {{ usuario.email }}
+                </p>
+                {% if usuario.perfil.telefono %}
+                    <p><i class="fas fa-phone"></i> {{ usuario.perfil.telefono }}</p>
+                {% endif %}
+                {% if usuario.perfil.fecha_nacimiento %}
+                    <p><i class="fas fa-calendar"></i> {{ usuario.perfil.fecha_nacimiento }}</p>
+                {% endif %}
+                {% if usuario.perfil.posicion %}
+                    <p><i class="fas fa-futbol"></i> Posición: {{ usuario.perfil.get_posicion_display }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Mis Estadísticas</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Aquí aparecerán tus estadísticas personales cuando tengas partidos registrados.
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="stat-card card">
+                            <div class="card-body text-center">
+                                <h3>0</h3>
+                                <p class="text-muted">Partidos Jugados</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card card">
+                            <div class="card-body text-center">
+                                <h3>0</h3>
+                                <p class="text-muted">Goles</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card card">
+                            <div class="card-body text-center">
+                                <h3>0</h3>
+                                <p class="text-muted">Asistencias</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

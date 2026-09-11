@@ -1,0 +1,62 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Mis Partidos - Tu Equipo Amateur{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-calendar-check"></i> Mis Próximos Partidos</h2>
+    <span class="badge bg-primary">{{ jugador.get_nombre_completo }}</span>
+</div>
+
+{% if partidos_con_asistencia %}
+<div class="row">
+    {% for item in partidos_con_asistencia %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-futbol"></i> vs {{ item.partido.rival }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <p><i class="fas fa-calendar"></i> <strong>Fecha:</strong> {{ item.partido.fecha }}</p>
+                <p><i class="fas fa-clock"></i> <strong>Hora:</strong> {{ item.partido.hora }}</p>
+                <p><i class="fas fa-map-marker-alt"></i> <strong>Lugar:</strong> {{ item.partido.lugar }}</p>
+                
+                <hr>
+                
+                {% if item.asistencia %}
+                    <p><strong>Tu respuesta:</strong></p>
+                    {% if item.asistencia.estado == 'CONFIRMADO' %}
+                        <span class="badge badge-confirmado">
+                            <i class="fas fa-check-circle"></i> Confirmado
+                        </span>
+                    {% elif item.asistencia.estado == 'RECHAZADO' %}
+                        <span class="badge badge-rechazado">
+                            <i class="fas fa-times-circle"></i> No voy
+                        </span>
+                    {% else %}
+                        <span class="badge badge-duda">
+                            <i class="fas fa-question-circle"></i> Duda
+                        </span>
+                    {% endif %}
+                {% else %}
+                    <p class="text-muted"><i class="fas fa-info-circle"></i> Sin responder</p>
+                {% endif %}
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'asistencias:confirmar' item.partido.pk %}" class="btn btn-primary w-100">
+                    <i class="fas fa-edit"></i> 
+                    {% if item.asistencia %}Cambiar Respuesta{% else %}Confirmar Asistencia{% endif %}
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info text-center">
+    <i class="fas fa-info-circle"></i> No hay partidos programados por el momento.
+</div>
+{% endif %}
+{% endblock %}

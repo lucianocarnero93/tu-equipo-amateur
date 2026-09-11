@@ -1,0 +1,175 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Reportes - Tu Equipo Amateur{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-trophy"></i> Reportes del Equipo</h2>
+</div>
+
+<!-- Estadísticas generales -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stat-card card border-primary">
+            <div class="card-body text-center">
+                <i class="fas fa-futbol fa-2x text-primary"></i>
+                <h3 class="mt-2">{{ totales.total_goles|default:0 }}</h3>
+                <p class="text-muted mb-0">Goles Totales</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card card border-info">
+            <div class="card-body text-center">
+                <i class="fas fa-hands-helping fa-2x text-info"></i>
+                <h3 class="mt-2">{{ totales.total_asistencias|default:0 }}</h3>
+                <p class="text-muted mb-0">Asistencias</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card card border-success">
+            <div class="card-body text-center">
+                <i class="fas fa-clock fa-2x text-success"></i>
+                <h3 class="mt-2">{{ totales.total_minutos|default:0 }}</h3>
+                <p class="text-muted mb-0">Minutos Jugados</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card card border-warning">
+            <div class="card-body text-center">
+                <i class="fas fa-calendar-check fa-2x text-warning"></i>
+                <h3 class="mt-2">{{ totales.total_partidos|default:0 }}</h3>
+                <p class="text-muted mb-0">Partidos con Estadísticas</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Goleadores -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-futbol"></i> Máximos Goleadores</h5>
+            </div>
+            <div class="card-body">
+                {% if goleadores %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Jugador</th>
+                                <th class="text-center">Goles</th>
+                                <th class="text-center">Partidos</th>
+                                <th class="text-center">Prom.</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for j in goleadores %}
+                            <tr>
+                                <td><strong>{{ forloop.counter }}</strong></td>
+                                <td>{{ j.get_nombre_completo }}</td>
+                                <td class="text-center">
+                                    <span class="badge bg-success">{{ j.total_goles }}</span>
+                                </td>
+                                <td class="text-center">{{ j.total_partidos }}</td>
+                                <td class="text-center">
+                                    {% widthratio j.total_goles j.total_partidos 100 as prom %}
+                                    {{ prom|floatformat:2 }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center mb-0">No hay goles registrados</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Asistidores -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-hands-helping"></i> Más Asistencias</h5>
+            </div>
+            <div class="card-body">
+                {% if asistidores %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Jugador</th>
+                                <th class="text-center">Asistencias</th>
+                                <th class="text-center">Partidos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for j in asistidores %}
+                            <tr>
+                                <td><strong>{{ forloop.counter }}</strong></td>
+                                <td>{{ j.get_nombre_completo }}</td>
+                                <td class="text-center">
+                                    <span class="badge bg-info">{{ j.total_asistencias }}</span>
+                                </td>
+                                <td class="text-center">{{ j.total_partidos }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center mb-0">No hay asistencias registradas</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Más presencias -->
+<div class="card shadow">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fas fa-users"></i> Más Presencias</h5>
+    </div>
+    <div class="card-body">
+        {% if presencias %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Dorsal</th>
+                        <th>Jugador</th>
+                        <th class="text-center">Partidos</th>
+                        <th class="text-center">Minutos</th>
+                        <th class="text-center">Goles</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for j in presencias %}
+                    <tr>
+                        <td><strong>{{ forloop.counter }}</strong></td>
+                        <td>{{ j.dorsal|default:"-" }}</td>
+                        <td>{{ j.get_nombre_completo }}</td>
+                        <td class="text-center">
+                            <span class="badge bg-primary">{{ j.total_partidos }}</span>
+                        </td>
+                        <td class="text-center">{{ j.total_minutos|default:0 }}'</td>
+                        <td class="text-center">{{ j.total_goles|default:0 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted text-center mb-0">No hay datos suficientes</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

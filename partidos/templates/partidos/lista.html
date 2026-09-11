@@ -1,0 +1,67 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Partidos - Tu Equipo Amateur{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-calendar-alt"></i> Partidos del Equipo</h2>
+    {% if user.perfil.rol == 'DT' %}
+    <a href="{% url 'partidos:crear' %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Nuevo Partido
+    </a>
+    {% endif %}
+</div>
+
+<div class="row">
+    {% for partido in partidos %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header {% if partido.estado == 'FINALIZADO' %}bg-success{% elif partido.estado == 'CANCELADO' %}bg-danger{% else %}bg-primary{% endif %} text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{{ partido.rival }}</h5>
+                    <span class="badge bg-light text-dark">{{ partido.get_estado_display }}</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <p><i class="fas fa-calendar"></i> {{ partido.fecha }}</p>
+                <p><i class="fas fa-clock"></i> {{ partido.hora }}</p>
+                <p><i class="fas fa-map-marker-alt"></i> {{ partido.lugar }}</p>
+                <p>
+                    <i class="fas fa-trophy"></i> 
+                    {% if partido.estado == 'FINALIZADO' %}
+                        <strong>{{ partido.get_resultado }}</strong>
+                    {% else %}
+                        <span class="text-muted">Sin disputar</span>
+                    {% endif %}
+                </p>
+            </div>
+            <div class="card-footer bg-transparent">
+                <a href="{% url 'partidos:detalle' partido.pk %}" class="btn btn-sm btn-info">
+                    <i class="fas fa-eye"></i> Ver
+                </a>
+                {% if user.perfil.rol == 'DT' %}
+                    <a href="{% url 'partidos:editar' partido.pk %}" class="btn btn-sm btn-warning">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="{% url 'partidos:eliminar' partido.pk %}" class="btn btn-sm btn-danger">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                    {% if partido.estado != 'FINALIZADO' %}
+                    <a href="{% url 'partidos:resultado' partido.pk %}" class="btn btn-sm btn-success">
+                        <i class="fas fa-plus"></i> Resultado
+                    </a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info text-center">
+            <i class="fas fa-info-circle"></i> No hay partidos registrados
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+

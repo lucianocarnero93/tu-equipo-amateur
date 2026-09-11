@@ -1,0 +1,33 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Eliminar Anuncio - Tu Equipo Amateur{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación</h4>
+            </div>
+            <div class="card-body text-center">
+                <p>¿Estás seguro que deseas eliminar este anuncio?</p>
+                <h5>{{ anuncio.titulo }}</h5>
+                <p class="text-muted">
+                    Publicado por {{ anuncio.autor.username }} el {{ anuncio.fecha_publicacion|date:"d/m/Y H:i" }}
+                </p>
+                <p class="text-danger"><i class="fas fa-exclamation-circle"></i> Esta acción no se puede deshacer.</p>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Sí, Eliminar
+                    </button>
+                    <a href="{% url 'comunicacion:lista' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancelar
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

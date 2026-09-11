@@ -1,0 +1,44 @@
+[
+    {
+        "model": "jugadores.jugador",
+        "pk": 1,
+        "fields": {
+            "nombre": "Juan",
+            "apellido": "Pérez",
+            "email": "juan@example.com",
+            "telefono": "123456789",
+            "fecha_nacimiento": "1995-05-15",
+            "posicion": "DELANTERO",
+            "dorsal": 9,
+            "activo": true
+        }
+    },
+    {
+        "model": "jugadores.jugador",
+        "pk": 2,
+        "fields": {
+            "nombre": "Carlos",
+            "apellido": "Gómez",
+            "email": "carlos@example.com",
+            "telefono": "987654321",
+            "fecha_nacimiento": "1990-08-20",
+            "posicion": "MEDIOCAMPISTA",
+            "dorsal": 8,
+            "activo": true
+        }
+    },
+    {
+        "model": "jugadores.jugador",
+        "pk": 3,
+        "fields": {
+            "nombre": "Luis",
+            "apellido": "Martínez",
+            "email": "luis@example.com",
+            "telefono": "456789123",
+            "fecha_nacimiento": "1993-03-10",
+            "posicion": "DEFENSOR",
+            "dorsal": 4,
+            "activo": true
+        }
+    }
+]
