@@ -30,3 +30,7 @@ Thumbs.db
 # Archivos locales
 .env
 .env.local
+
+# Backups de la BD
+db.sqlite3.backup
+*.backup
