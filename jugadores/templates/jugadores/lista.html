@@ -4,21 +4,37 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="fas fa-users"></i> Jugadores del Equipo</h2>
+    <h2><i class="fas fa-users"></i> El Plantel de Los Pibes</h2>
     {% if user.perfil.rol == 'DT' %}
     <a href="{% url 'jugadores:crear' %}" class="btn btn-primary">
-        <i class="fas fa-user-plus"></i> Nuevo Jugador
+        <i class="fas fa-user-plus"></i> Sumar un pibe
     </a>
     {% endif %}
+</div>
+
+<!-- Filtros -->
+<div class="mb-4">
+    <a href="?filtro=activos" 
+       class="btn btn-sm {% if filtro_actual == 'activos' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+        <i class="fas fa-check-circle"></i> Activos
+    </a>
+    <a href="?filtro=inactivos" 
+       class="btn btn-sm {% if filtro_actual == 'inactivos' %}btn-warning{% else %}btn-outline-warning{% endif %}">
+        <i class="fas fa-user-minus"></i> Dados de baja
+    </a>
+    <a href="?filtro=todos" 
+       class="btn btn-sm {% if filtro_actual == 'todos' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">
+        <i class="fas fa-list"></i> Todos
+    </a>
 </div>
 
 <div class="table-responsive">
     <table class="table table-striped table-hover">
         <thead class="table-dark">
             <tr>
-                <th>#</th>
+                <th>Dorsal</th>
                 <th>Nombre</th>
-                <th>Posición</th>
+                <th>Puesto</th>
                 <th>Email</th>
                 <th>Teléfono</th>
                 <th>Estado</th>
@@ -39,9 +55,9 @@
                 <td>{{ jugador.telefono|default:"-" }}</td>
                 <td>
                     {% if jugador.activo %}
-                        <span class="badge bg-success">Activo</span>
+                        <span class="badge bg-success">Está al firme</span>
                     {% else %}
-                        <span class="badge bg-danger">Inactivo</span>
+                        <span class="badge bg-secondary">Dado de baja</span>
                     {% endif %}
                 </td>
                 <td>
@@ -49,19 +65,32 @@
                         <i class="fas fa-eye"></i>
                     </a>
                     {% if user.perfil.rol == 'DT' %}
-                    <a href="{% url 'jugadores:editar' jugador.pk %}" class="btn btn-sm btn-warning">
-                        <i class="fas fa-edit"></i>
-                    </a>
-                    <a href="{% url 'jugadores:eliminar' jugador.pk %}" class="btn btn-sm btn-danger">
-                        <i class="fas fa-trash"></i>
-                    </a>
+                        {% if jugador.activo %}
+                            <a href="{% url 'jugadores:editar' jugador.pk %}" class="btn btn-sm btn-warning">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'jugadores:eliminar' jugador.pk %}" class="btn btn-sm btn-danger">
+                                <i class="fas fa-user-minus"></i>
+                            </a>
+                        {% else %}
+                            <a href="{% url 'jugadores:reactivar' jugador.pk %}" class="btn btn-sm btn-success">
+                                <i class="fas fa-user-plus"></i> Reactivar
+                            </a>
+                        {% endif %}
                     {% endif %}
                 </td>
             </tr>
             {% empty %}
             <tr>
                 <td colspan="7" class="text-center text-muted">
-                    <i class="fas fa-info-circle"></i> Todavia no cargaste ningun jugador!
+                    <i class="fas fa-info-circle"></i> 
+                    {% if filtro_actual == 'inactivos' %}
+                        No hay jugadores dados de baja
+                    {% elif filtro_actual == 'todos' %}
+                        Todavía no cargaste ningún jugador
+                    {% else %}
+                        No hay jugadores activos
+                    {% endif %}
                 </td>
             </tr>
             {% endfor %}

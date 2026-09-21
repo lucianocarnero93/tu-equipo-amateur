@@ -4,9 +4,9 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="fas fa-chart-bar"></i> Estadísticas del Partido</h2>
+    <h2><i class="fas fa-chart-bar"></i> Los Números del Partido</h2>
     <a href="{% url 'partidos:detalle' partido.pk %}" class="btn btn-secondary">
-        <i class="fas fa-arrow-left"></i> Volver al Partido
+        <i class="fas fa-arrow-left"></i> Volver al partido
     </a>
 </div>
 
@@ -38,12 +38,56 @@
 {% if es_dt %}
 <div class="mb-3">
     <a href="{% url 'estadisticas:agregar' partido.pk %}" class="btn btn-primary">
-        <i class="fas fa-plus"></i> Agregar Estadística
+        <i class="fas fa-plus"></i> Cargar números de un jugador
     </a>
 </div>
 {% endif %}
 
-<!-- Tabla de estadísticas -->
+<!-- Resumen de goleadores y asistidores -->
+{% if estadisticas %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card shadow border-success">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-futbol"></i> Goleadores del partido</h5>
+            </div>
+            <div class="card-body">
+                {% for e in estadisticas %}
+                    {% if e.goles > 0 %}
+                    <p class="mb-2">
+                        <span class="badge bg-success">{{ e.goles }}</span>
+                        <strong>{{ e.nombre_jugador }}</strong>
+                    </p>
+                    {% endif %}
+                {% empty %}
+                    <p class="text-muted mb-0">Nadie metió goles</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow border-info">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-hands-helping"></i> Asistidores</h5>
+            </div>
+            <div class="card-body">
+                {% for e in estadisticas %}
+                    {% if e.asistencias > 0 %}
+                    <p class="mb-2">
+                        <span class="badge bg-info">{{ e.asistencias }}</span>
+                        <strong>{{ e.nombre_jugador }}</strong>
+                    </p>
+                    {% endif %}
+                {% empty %}
+                    <p class="text-muted mb-0">Nadie dio asistencias</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Tabla de estadísticas completa -->
 <div class="card shadow">
     <div class="card-body">
         {% if estadisticas %}
@@ -55,7 +99,7 @@
                         <th>Jugador</th>
                         <th class="text-center">Goles</th>
                         <th class="text-center">Asistencias</th>
-                        <th class="text-center">Minutos</th>
+                        <th class="text-center">Tiempo</th>
                         <th class="text-center">🟨</th>
                         <th class="text-center">🟥</th>
                         {% if es_dt %}
@@ -66,8 +110,8 @@
                 <tbody>
                     {% for e in estadisticas %}
                     <tr>
-                        <td><strong>{{ e.jugador.dorsal|default:"-" }}</strong></td>
-                        <td>{{ e.jugador.get_nombre_completo }}</td>
+                        <td><strong>{% if e.jugador %}{{ e.jugador.dorsal|default:"-" }}{% else %}-{% endif %}</strong></td>
+                        <td>{{ e.nombre_jugador }}</td>
                         <td class="text-center">
                             {% if e.goles > 0 %}
                                 <span class="badge bg-success">{{ e.goles }}</span>
@@ -82,7 +126,9 @@
                                 0
                             {% endif %}
                         </td>
-                        <td class="text-center">{{ e.minutos_jugados }}'</td>
+                        <td class="text-center">
+                            <small>{{ e.get_tiempo_jugado_display }}</small>
+                        </td>
                         <td class="text-center">
                             {% if e.tarjetas_amarillas > 0 %}
                                 <span class="badge bg-warning text-dark">{{ e.tarjetas_amarillas }}</span>
@@ -114,7 +160,13 @@
         </div>
         {% else %}
         <div class="alert alert-info text-center mb-0">
-            <i class="fas fa-info-circle"></i> No hay estadísticas registradas para este partido.
+            <i class="fas fa-info-circle"></i> Todavía no cargaste los números de este partido.
+            {% if es_dt %}
+                <br><br>
+                <a href="{% url 'estadisticas:agregar' partido.pk %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Empezar a cargar
+                </a>
+            {% endif %}
         </div>
         {% endif %}
     </div>

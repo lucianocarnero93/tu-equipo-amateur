@@ -1,16 +1,16 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Dar de baja - Tu Equipo Amateur{% endblock %}
+{% block title %}Reactivar jugador - Tu Equipo Amateur{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-6">
         <div class="card shadow">
-            <div class="card-header bg-warning text-dark">
-                <h4 class="mb-0"><i class="fas fa-user-minus"></i> Dar de baja</h4>
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0"><i class="fas fa-user-plus"></i> Reactivar jugador</h4>
             </div>
             <div class="card-body text-center">
-                <p>¿Seguro que querés dar de baja a este pibe del plantel?</p>
+                <p>¿Querés que este pibe vuelva al plantel?</p>
                 <h5>{{ jugador.get_nombre_completo }}</h5>
                 <p class="text-muted">
                     Dorsal: {{ jugador.dorsal|default:"Sin dorsal" }} | 
@@ -19,16 +19,16 @@
 
                 <div class="alert alert-info text-start">
                     <i class="fas fa-info-circle"></i>
-                    <strong>Ojo:</strong> no se borra del sistema. Se marca como inactivo.
-                    Sus estadísticas se mantienen y podés reactivarlo cuando quieras.
+                    Va a volver a aparecer en la lista de activos y podrá ser convocado
+                    para los próximos partidos.
                 </div>
 
                 <form method="post">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-warning">
-                        <i class="fas fa-user-minus"></i> Sí, dar de baja
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-user-plus"></i> Sí, reactivar
                     </button>
-                    <a href="{% url 'jugadores:lista' %}" class="btn btn-secondary">
+                    <a href="{% url 'jugadores:lista' %}?filtro=inactivos" class="btn btn-secondary">
                         <i class="fas fa-times"></i> Mejor no
                     </a>
                 </form>

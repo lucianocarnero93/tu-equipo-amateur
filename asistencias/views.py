@@ -1,35 +1,37 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from django.contrib.auth.decorators import user_passes_test
+from core.utils.permisos import es_dt, es_dt_o_ayudante
+from core.utils.equipos import get_equipo_activo, get_equipo_activo_o_aviso
 from partidos.models import Partido
 from jugadores.models import Jugador
 from .models import Asistencia
 from .forms import AsistenciaForm
 
 
-def es_dt(user):
-    """Chequea si el usuario es el técnico (DT)"""
-    return user.is_authenticated and hasattr(user, 'perfil') and user.perfil.rol == 'DT'
-
-
 @login_required
 def mis_partidos(request):
-    """El jugador ve los partidos que se vienen y confirma si va o no"""
-    # Buscamos el jugador asociado al usuario actual
-    try:
-        jugador = Jugador.objects.get(usuario=request.user)
-    except Jugador.DoesNotExist:
-        messages.warning(request, 'No estás cargado como jugador. Hablá con el técnico.')
+    """El jugador ve los partidos programados de su equipo."""
+    # Buscar el jugador del usuario en el equipo activo
+    equipo = get_equipo_activo(request.user)
+
+    if equipo is None:
+        messages.warning(request, 'No tenés un equipo activo.')
         return redirect('core:home')
 
-    # Traemos los partidos programados (los que todavía no se jugaron)
-    partidos = Partido.objects.filter(estado='PROGRAMADO').order_by('fecha', 'hora')
+    try:
+        jugador = Jugador.objects.get(usuario=request.user, equipo=equipo)
+    except Jugador.DoesNotExist:
+        messages.warning(request, 'No estás cargado como jugador en este equipo.')
+        return redirect('core:home')
 
-    # Armamos un diccionario con las respuestas que ya dio este jugador
+    # Traemos los partidos programados del equipo
+    partidos = Partido.objects.filter(equipo=equipo, estado='PROGRAMADO').order_by('fecha', 'hora')
+
+    # Armamos un diccionario con las respuestas del jugador
     asistencias = {a.partido_id: a for a in Asistencia.objects.filter(jugador=jugador)}
 
-    # Combinamos la info de cada partido con la respuesta del jugador
+    # Combinamos la info
     partidos_con_asistencia = []
     for partido in partidos:
         partidos_con_asistencia.append({
@@ -39,22 +41,29 @@ def mis_partidos(request):
 
     return render(request, 'asistencias/mis_partidos.html', {
         'partidos_con_asistencia': partidos_con_asistencia,
-        'jugador': jugador
+        'jugador': jugador,
+        'equipo': equipo,
     })
 
 
 @login_required
 def confirmar_asistencia(request, partido_id):
-    """El jugador confirma si va, no va o está en duda"""
+    """El jugador confirma su asistencia a un partido."""
     partido = get_object_or_404(Partido, pk=partido_id)
 
+    # Verificar que el partido sea del equipo activo
+    equipo = get_equipo_activo(request.user)
+    if partido.equipo != equipo:
+        messages.error(request, 'Ese partido no es de tu equipo.')
+        return redirect('asistencias:mis_partidos')
+
     try:
-        jugador = Jugador.objects.get(usuario=request.user)
+        jugador = Jugador.objects.get(usuario=request.user, equipo=equipo)
     except Jugador.DoesNotExist:
-        messages.error(request, 'No estás cargado como jugador en el sistema.')
+        messages.error(request, 'No estás cargado como jugador en este equipo.')
         return redirect('core:home')
 
-    # Buscamos si ya respondió algo, sino creamos una respuesta por defecto
+    # Obtener o crear la asistencia
     asistencia, created = Asistencia.objects.get_or_create(
         partido=partido,
         jugador=jugador,
@@ -73,26 +82,29 @@ def confirmar_asistencia(request, partido_id):
     return render(request, 'asistencias/confirmar.html', {
         'form': form,
         'partido': partido,
-        'asistencia': asistencia
+        'asistencia': asistencia,
     })
 
 
 @login_required
-@user_passes_test(es_dt, login_url='/')
+@user_passes_test(es_dt_o_ayudante, login_url='/')
 def resumen_asistencias(request, partido_id):
-    """El DT ve quién confirmó, quién no va y quién todavía no contestó"""
+    """El DT o ayudante ven el resumen de asistencias."""
     partido = get_object_or_404(Partido, pk=partido_id)
 
-    # Traemos todas las respuestas de este partido
+    # Verificar que el partido sea del equipo activo
+    equipo = get_equipo_activo(request.user)
+    if partido.equipo != equipo:
+        messages.error(request, 'Ese partido no es de tu equipo.')
+        return redirect('partidos:lista')
+
     asistencias = Asistencia.objects.filter(partido=partido).select_related('jugador')
 
-    # Separamos por estado
     confirmados = asistencias.filter(estado='CONFIRMADO')
     rechazados = asistencias.filter(estado='RECHAZADO')
     dudas = asistencias.filter(estado='DUDA')
 
-    # Vemos quiénes todavía no dijeron nada
-    jugadores_activos = Jugador.objects.filter(activo=True)
+    jugadores_activos = equipo.jugadores.filter(activo=True)
     jugadores_con_respuesta = asistencias.values_list('jugador_id', flat=True)
     sin_respuesta = jugadores_activos.exclude(id__in=jugadores_con_respuesta)
 
@@ -103,5 +115,5 @@ def resumen_asistencias(request, partido_id):
         'dudas': dudas,
         'sin_respuesta': sin_respuesta,
         'total_confirmados': confirmados.count(),
-        'total_jugadores': jugadores_activos.count()
+        'total_jugadores': jugadores_activos.count(),
     })

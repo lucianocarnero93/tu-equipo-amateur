@@ -1,32 +1,42 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from django.contrib.auth.decorators import user_passes_test
+from core.utils.permisos import es_dt, es_dt_o_ayudante
+from core.utils.equipos import get_equipo_activo, get_equipo_activo_o_aviso
 from .models import Partido
 from .forms import PartidoForm, ResultadoForm
 
 
-def es_dt(user):
-    """Chequea si el usuario es el técnico (DT)"""
-    return user.is_authenticated and hasattr(user, 'perfil') and user.perfil.rol == 'DT'
-
-
 @login_required
 def lista_partidos(request):
-    """Muestra todos los partidos, los jugados y los que vienen"""
-    partidos = Partido.objects.all()
-    return render(request, 'partidos/lista.html', {'partidos': partidos})
+    """Muestra los partidos del equipo activo."""
+    equipo = get_equipo_activo(request.user)
+
+    if equipo is None:
+        partidos = Partido.objects.none()
+    else:
+        partidos = Partido.objects.filter(equipo=equipo)
+
+    return render(request, 'partidos/lista.html', {
+        'partidos': partidos,
+        'equipo': equipo,
+    })
 
 
 @login_required
-@user_passes_test(es_dt, login_url='/')
+@user_passes_test(es_dt_o_ayudante, login_url='/')
 def crear_partido(request):
-    """El DT carga un partido nuevo en la agenda"""
+    """El DT o ayudante agendan un partido."""
+    equipo = get_equipo_activo_o_aviso(request)
+    if equipo is None:
+        return redirect('core:home')
+
     if request.method == 'POST':
         form = PartidoForm(request.POST)
         if form.is_valid():
             partido = form.save(commit=False)
             partido.creado_por = request.user
+            partido.equipo = equipo  # ← ASIGNAR EQUIPO
             partido.save()
             messages.success(request, f'Quedó agendado el partido contra {partido.rival}.')
             return redirect('partidos:lista')
@@ -35,14 +45,24 @@ def crear_partido(request):
     else:
         form = PartidoForm()
 
-    return render(request, 'partidos/formulario.html', {'form': form, 'titulo': 'Agendar un partido'})
+    return render(request, 'partidos/formulario.html', {
+        'form': form,
+        'titulo': 'Agendar un partido',
+        'equipo': equipo,
+    })
 
 
 @login_required
-@user_passes_test(es_dt, login_url='/')
+@user_passes_test(es_dt_o_ayudante, login_url='/')
 def editar_partido(request, pk):
-    """El DT puede corregir los datos de un partido"""
+    """El DT o ayudante pueden corregir un partido."""
     partido = get_object_or_404(Partido, pk=pk)
+
+    # Verificar que el partido pertenezca al equipo activo
+    equipo = get_equipo_activo(request.user)
+    if partido.equipo != equipo:
+        messages.error(request, 'No podés editar partidos de otro equipo.')
+        return redirect('partidos:lista')
 
     if request.method == 'POST':
         form = PartidoForm(request.POST, instance=partido)
@@ -55,14 +75,25 @@ def editar_partido(request, pk):
     else:
         form = PartidoForm(instance=partido)
 
-    return render(request, 'partidos/formulario.html', {'form': form, 'titulo': 'Editar partido', 'partido': partido})
+    return render(request, 'partidos/formulario.html', {
+        'form': form,
+        'titulo': 'Editar partido',
+        'partido': partido,
+        'equipo': equipo,
+    })
 
 
 @login_required
-@user_passes_test(es_dt, login_url='/')
+@user_passes_test(es_dt_o_ayudante, login_url='/')
 def eliminar_partido(request, pk):
-    """El DT puede borrar un partido de la agenda"""
+    """El DT o ayudante pueden borrar un partido."""
     partido = get_object_or_404(Partido, pk=pk)
+
+    # Verificar que el partido pertenezca al equipo activo
+    equipo = get_equipo_activo(request.user)
+    if partido.equipo != equipo:
+        messages.error(request, 'No podés borrar partidos de otro equipo.')
+        return redirect('partidos:lista')
 
     if request.method == 'POST':
         rival = partido.rival
@@ -75,21 +106,27 @@ def eliminar_partido(request, pk):
 
 @login_required
 def detalle_partido(request, pk):
-    """Ficha completa del partido"""
+    """Ficha completa del partido."""
     partido = get_object_or_404(Partido, pk=pk)
-    es_dt_user = es_dt(request.user)
+    es_dt_user = es_dt_o_ayudante(request.user)
 
     return render(request, 'partidos/detalle.html', {
         'partido': partido,
-        'es_dt': es_dt_user
+        'es_dt': es_dt_user,
     })
 
 
 @login_required
-@user_passes_test(es_dt, login_url='/')
+@user_passes_test(es_dt_o_ayudante, login_url='/')
 def actualizar_resultado(request, pk):
-    """El DT carga el resultado final del partido"""
+    """El DT o ayudante cargan el resultado."""
     partido = get_object_or_404(Partido, pk=pk)
+
+    # Verificar que el partido pertenezca al equipo activo
+    equipo = get_equipo_activo(request.user)
+    if partido.equipo != equipo:
+        messages.error(request, 'No podés cargar el resultado de otro equipo.')
+        return redirect('partidos:lista')
 
     if request.method == 'POST':
         form = ResultadoForm(request.POST, instance=partido)
@@ -102,4 +139,7 @@ def actualizar_resultado(request, pk):
     else:
         form = ResultadoForm(instance=partido)
 
-    return render(request, 'partidos/resultado.html', {'form': form, 'partido': partido})
+    return render(request, 'partidos/resultado.html', {
+        'form': form,
+        'partido': partido,
+    })

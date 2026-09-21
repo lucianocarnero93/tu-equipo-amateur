@@ -1,25 +1,29 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
+from core.utils.permisos import es_dt, es_dt_o_ayudante
+from core.utils.equipos import get_equipo_activo, get_equipo_activo_o_aviso
 from partidos.models import Partido
 from jugadores.models import Jugador
 from .models import Alineacion
 from .forms import AlineacionForm
 
 
-def es_dt(user):
-    """Chequea si el usuario es el técnico (DT)"""
-    return user.is_authenticated and hasattr(user, 'perfil') and user.perfil.rol == 'DT'
-
-
 @login_required
 def ver_alineacion(request, partido_id):
-    """Muestra la formación del partido: titulares y suplentes"""
+    """Muestra la formación del partido."""
     partido = get_object_or_404(Partido, pk=partido_id)
+
+    # Verificar que el partido sea del equipo activo
+    equipo = get_equipo_activo(request.user)
+    if partido.equipo != equipo:
+        messages.error(request, 'Ese partido no es de tu equipo.')
+        return redirect('partidos:lista')
+
     titulares = Alineacion.objects.filter(partido=partido, tipo='TITULAR').select_related('jugador')
     suplentes = Alineacion.objects.filter(partido=partido, tipo='SUPLENTE').select_related('jugador')
 
-    es_dt_user = es_dt(request.user)
+    es_dt_user = es_dt_o_ayudante(request.user)
 
     return render(request, 'alineaciones/ver.html', {
         'partido': partido,
@@ -30,10 +34,18 @@ def ver_alineacion(request, partido_id):
 
 
 @login_required
-@user_passes_test(es_dt, login_url='/')
+@user_passes_test(es_dt_o_ayudante, login_url='/')
 def agregar_jugador(request, partido_id):
-    """El DT suma un jugador a la formación"""
+    """El DT o ayudante suman un jugador a la formación."""
     partido = get_object_or_404(Partido, pk=partido_id)
+
+    equipo = get_equipo_activo_o_aviso(request)
+    if equipo is None:
+        return redirect('core:home')
+
+    if partido.equipo != equipo:
+        messages.error(request, 'Ese partido no es de tu equipo.')
+        return redirect('partidos:lista')
 
     if request.method == 'POST':
         form = AlineacionForm(request.POST)
@@ -41,7 +53,6 @@ def agregar_jugador(request, partido_id):
             alineacion = form.save(commit=False)
             alineacion.partido = partido
 
-            # Chequeamos que no esté repetido
             if Alineacion.objects.filter(partido=partido, jugador=alineacion.jugador).exists():
                 messages.error(request, f'{alineacion.jugador.get_nombre_completo()} ya está en la formación.')
             else:
@@ -51,9 +62,8 @@ def agregar_jugador(request, partido_id):
         else:
             messages.error(request, 'Uhh, revisá los datos porque algo no cierra.')
     else:
-        # Solo mostramos los jugadores que todavía no están en la formación
         jugadores_en_alineacion = Alineacion.objects.filter(partido=partido).values_list('jugador_id', flat=True)
-        jugadores_disponibles = Jugador.objects.filter(activo=True).exclude(id__in=jugadores_en_alineacion)
+        jugadores_disponibles = equipo.jugadores.filter(activo=True).exclude(id__in=jugadores_en_alineacion)
         form = AlineacionForm()
         form.fields['jugador'].queryset = jugadores_disponibles
 
@@ -64,10 +74,16 @@ def agregar_jugador(request, partido_id):
 
 
 @login_required
-@user_passes_test(es_dt, login_url='/')
+@user_passes_test(es_dt_o_ayudante, login_url='/')
 def eliminar_jugador(request, alineacion_id):
-    """El DT saca un jugador de la formación"""
+    """El DT o ayudante sacan un jugador de la formación."""
     alineacion = get_object_or_404(Alineacion, pk=alineacion_id)
+
+    equipo = get_equipo_activo(request.user)
+    if alineacion.partido.equipo != equipo:
+        messages.error(request, 'No podés editar formaciones de otro equipo.')
+        return redirect('partidos:lista')
+
     partido_id = alineacion.partido.pk
 
     if request.method == 'POST':
@@ -80,10 +96,15 @@ def eliminar_jugador(request, alineacion_id):
 
 
 @login_required
-@user_passes_test(es_dt, login_url='/')
+@user_passes_test(es_dt_o_ayudante, login_url='/')
 def cambiar_tipo(request, alineacion_id):
-    """El DT cambia a un jugador entre titular y suplente"""
+    """El DT o ayudante cambian entre titular y suplente."""
     alineacion = get_object_or_404(Alineacion, pk=alineacion_id)
+
+    equipo = get_equipo_activo(request.user)
+    if alineacion.partido.equipo != equipo:
+        messages.error(request, 'No podés editar formaciones de otro equipo.')
+        return redirect('partidos:lista')
 
     if alineacion.tipo == 'TITULAR':
         alineacion.tipo = 'SUPLENTE'

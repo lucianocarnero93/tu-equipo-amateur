@@ -206,7 +206,7 @@ class Command(BaseCommand):
                     jugador=jugador,
                     goles=random.choices([0, 0, 0, 1, 1, 2], k=1)[0],
                     asistencias=random.choices([0, 0, 0, 1, 1], k=1)[0],
-                    minutos_jugados=random.randint(60, 90) if es_titular else random.randint(0, 30),
+                    tiempo_jugado=random.choice(['COMPLETO', 'COMPLETO', 'SALIO_2DO', 'ENTRO_2DO']),
                     tarjetas_amarillas=random.choices([0, 0, 0, 0, 1], k=1)[0],
                     tarjetas_rojas=0
                 )
