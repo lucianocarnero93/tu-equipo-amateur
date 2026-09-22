@@ -68,14 +68,18 @@
         <i class="fas fa-arrow-left"></i> Volver
     </a>
 
-    {% if membresia.rol == 'DT' or membresia.rol == 'AYUDANTE' %}
-    <a href="{% url 'equipos:lista_invitaciones' %}" class="btn btn-info">
-        <i class="fas fa-user-plus"></i> Invitaciones
-    </a>
-    <a href="{% url 'equipos:lista_solicitudes' %}" class="btn btn-primary">
-        <i class="fas fa-clipboard-list"></i> Ver solicitudes
-    </a>
-    {% endif %}
+    <a href="{% url 'equipos:lista_miembros' equipo.slug %}" class="btn btn-dark">
+    <i class="fas fa-users"></i> Ver miembros
+</a>
+
+{% if membresia.rol == 'DT' or membresia.rol == 'AYUDANTE' %}
+<a href="{% url 'equipos:lista_invitaciones' %}" class="btn btn-info">
+    <i class="fas fa-user-plus"></i> Invitaciones
+</a>
+<a href="{% url 'equipos:lista_solicitudes' %}" class="btn btn-primary">
+    <i class="fas fa-clipboard-list"></i> Ver solicitudes
+</a>
+{% endif %}
 
     {% if membresia.rol == 'DT' %}
     <a href="#" class="btn btn-warning disabled" title="Próximamente">

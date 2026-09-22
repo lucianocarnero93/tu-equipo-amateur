@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.utils import timezone
 from core.utils.permisos import es_dt, es_dt_o_ayudante
-from core.utils.equipos import get_equipo_activo
+from core.utils.equipos import get_equipo_activo, sincronizar_rol_perfil
 from .models import Equipo, Membresia, Invitacion, SolicitudIngreso
 from .forms import EquipoForm, InvitacionForm, SolicitudForm
 
@@ -34,14 +34,17 @@ def crear_equipo(request):
         if form.is_valid():
             equipo = form.save()
 
+            # Crear la membresía del creador como DT
             Membresia.objects.create(
                 usuario=request.user,
                 equipo=equipo,
                 rol='DT'
             )
 
+            # Asignar como equipo activo y sincronizar rol del perfil
             request.user.perfil.equipo_activo = equipo
             request.user.perfil.save()
+            sincronizar_rol_perfil(request.user)
 
             messages.success(request, f'¡Bienvenido a {equipo.nombre}! Ya podés empezar a gestionar tu equipo.')
             return redirect('equipos:detalle', slug=equipo.slug)
@@ -82,8 +85,10 @@ def cambiar_equipo(request, slug):
         messages.error(request, 'No pertenecés a ese equipo.')
         return redirect('equipos:mis_equipos')
 
+    # Cambiar el equipo activo y sincronizar rol del perfil
     request.user.perfil.equipo_activo = equipo
     request.user.perfil.save()
+    sincronizar_rol_perfil(request.user)
 
     messages.success(request, f'Ahora estás viendo "{equipo.nombre}".')
     return redirect('core:home')
@@ -102,11 +107,6 @@ def lista_invitaciones(request):
         messages.warning(request, 'No tenés un equipo activo.')
         return redirect('core:home')
 
-    membresia = Membresia.objects.filter(usuario=request.user, equipo=equipo, activo=True).first()
-    if not membresia or membresia.rol not in ['DT', 'AYUDANTE']:
-        messages.error(request, 'Solo el cuerpo técnico puede ver las invitaciones.')
-        return redirect('core:home')
-
     invitaciones = Invitacion.objects.filter(equipo=equipo).order_by('-fecha_creacion')
 
     return render(request, 'equipos/invitaciones.html', {
@@ -122,11 +122,6 @@ def crear_invitacion(request):
     equipo = get_equipo_activo(request.user)
     if equipo is None:
         messages.warning(request, 'No tenés un equipo activo.')
-        return redirect('core:home')
-
-    membresia = Membresia.objects.filter(usuario=request.user, equipo=equipo, activo=True).first()
-    if not membresia or membresia.rol not in ['DT', 'AYUDANTE']:
-        messages.error(request, 'Solo el cuerpo técnico puede crear invitaciones.')
         return redirect('core:home')
 
     if request.method == 'POST':
@@ -211,6 +206,8 @@ def unirse_con_codigo(request):
             request.user.perfil.equipo_activo = invitacion.equipo
             request.user.perfil.save()
 
+        sincronizar_rol_perfil(request.user)
+
         messages.success(request, f'¡Te uniste a {invitacion.equipo.nombre} como {invitacion.get_rol_asignado_display()}!')
         return redirect('equipos:mis_equipos')
 
@@ -231,7 +228,6 @@ def buscar_equipos(request):
     else:
         equipos = Equipo.objects.filter(activo=True)
 
-    # Marcamos los que ya es miembro
     equipos_miembro = set(
         Membresia.objects.filter(
             usuario=request.user,
@@ -239,7 +235,6 @@ def buscar_equipos(request):
         ).values_list('equipo_id', flat=True)
     )
 
-    # Marcamos los que ya tiene solicitud pendiente
     solicitudes_pendientes = set(
         SolicitudIngreso.objects.filter(
             usuario=request.user,
@@ -260,12 +255,10 @@ def solicitar_ingreso(request, slug):
     """El jugador pide unirse a un equipo."""
     equipo = get_object_or_404(Equipo, slug=slug)
 
-    # No puede solicitar si ya es miembro
     if Membresia.objects.filter(usuario=request.user, equipo=equipo, activo=True).exists():
         messages.info(request, f'Ya sos miembro de {equipo.nombre}.')
         return redirect('equipos:buscar')
 
-    # No puede solicitar dos veces
     if SolicitudIngreso.objects.filter(usuario=request.user, equipo=equipo, estado='PENDIENTE').exists():
         messages.info(request, f'Ya pediste unirte a {equipo.nombre}. Esperá la respuesta.')
         return redirect('equipos:buscar')
@@ -298,11 +291,6 @@ def lista_solicitudes(request):
         messages.warning(request, 'No tenés un equipo activo.')
         return redirect('core:home')
 
-    membresia = Membresia.objects.filter(usuario=request.user, equipo=equipo, activo=True).first()
-    if not membresia or membresia.rol not in ['DT', 'AYUDANTE']:
-        messages.error(request, 'Solo el cuerpo técnico puede ver las solicitudes.')
-        return redirect('core:home')
-
     pendientes = SolicitudIngreso.objects.filter(equipo=equipo, estado='PENDIENTE').order_by('-fecha_solicitud')
     historial = SolicitudIngreso.objects.filter(equipo=equipo).exclude(estado='PENDIENTE').order_by('-fecha_respuesta')[:10]
 
@@ -330,22 +318,21 @@ def aceptar_solicitud(request, pk):
         return redirect('core:home')
 
     if request.method == 'POST':
-        # Crear la membresía
         Membresia.objects.get_or_create(
             usuario=solicitud.usuario,
             equipo=solicitud.equipo,
             defaults={'rol': 'JUGADOR'}
         )
 
-        # Actualizar la solicitud
         solicitud.estado = 'ACEPTADA'
         solicitud.fecha_respuesta = timezone.now()
         solicitud.save()
 
-        # Si el usuario no tiene equipo activo, asignar este
         if not solicitud.usuario.perfil.equipo_activo:
             solicitud.usuario.perfil.equipo_activo = solicitud.equipo
             solicitud.usuario.perfil.save()
+
+        sincronizar_rol_perfil(solicitud.usuario)
 
         messages.success(request, f'¡{solicitud.usuario.username} fue aceptado en el equipo!')
         return redirect('equipos:lista_solicitudes')
@@ -378,3 +365,284 @@ def rechazar_solicitud(request, pk):
         return redirect('equipos:lista_solicitudes')
 
     return render(request, 'equipos/rechazar_solicitud.html', {'solicitud': solicitud})
+
+
+# ============================================
+# MIEMBROS Y TRANSFERENCIA DE MANDO
+# ============================================
+
+@login_required
+def lista_miembros(request, slug):
+    """Muestra todos los miembros del equipo."""
+    equipo = get_object_or_404(Equipo, slug=slug)
+
+    membresia = Membresia.objects.filter(
+        usuario=request.user,
+        equipo=equipo,
+        activo=True
+    ).first()
+
+    if not membresia:
+        messages.error(request, 'No pertenecés a ese equipo.')
+        return redirect('equipos:mis_equipos')
+
+    miembros = Membresia.objects.filter(
+        equipo=equipo,
+        activo=True
+    ).select_related('usuario').order_by('rol', 'usuario__username')
+
+    return render(request, 'equipos/miembros.html', {
+        'equipo': equipo,
+        'membresia': membresia,
+        'miembros': miembros,
+    })
+
+
+@login_required
+@user_passes_test(es_dt, login_url='/')
+def transferir_dt(request, slug):
+    """El DT transfiere su rol a otro miembro."""
+    equipo = get_object_or_404(Equipo, slug=slug)
+
+    membresia_dt = Membresia.objects.filter(
+        usuario=request.user,
+        equipo=equipo,
+        rol='DT',
+        activo=True
+    ).first()
+
+    if not membresia_dt:
+        messages.error(request, 'Solo el DT puede transferir el mando.')
+        return redirect('equipos:lista_miembros', slug=slug)
+
+    candidatos = Membresia.objects.filter(
+        equipo=equipo,
+        activo=True
+    ).exclude(usuario=request.user).select_related('usuario')
+
+    if not candidatos.exists():
+        messages.warning(request, 'No hay otros miembros para transferir el mando.')
+        return redirect('equipos:lista_miembros', slug=slug)
+
+    if request.method == 'POST':
+        nuevo_dt_id = request.POST.get('nuevo_dt')
+
+        try:
+            nuevo_dt_membresia = Membresia.objects.get(
+                pk=nuevo_dt_id,
+                equipo=equipo,
+                activo=True
+            )
+        except Membresia.DoesNotExist:
+            messages.error(request, 'El miembro seleccionado no existe.')
+            return redirect('equipos:transferir_dt', slug=slug)
+
+        rol_anterior_nuevo = nuevo_dt_membresia.rol
+
+        membresia_dt.rol = rol_anterior_nuevo
+        membresia_dt.save()
+
+        nuevo_dt_membresia.rol = 'DT'
+        nuevo_dt_membresia.save()
+
+        # Sincronizar roles en los perfiles
+        sincronizar_rol_perfil(membresia_dt.usuario)
+        sincronizar_rol_perfil(nuevo_dt_membresia.usuario)
+
+        messages.success(
+            request,
+            f'¡Ahora {nuevo_dt_membresia.usuario.username} es el DT de {equipo.nombre}! '
+            f'Tu nuevo rol es {membresia_dt.get_rol_display()}.'
+        )
+        return redirect('equipos:lista_miembros', slug=slug)
+
+    return render(request, 'equipos/transferir_dt.html', {
+        'equipo': equipo,
+        'candidatos': candidatos,
+        'mi_membresia': membresia_dt,
+    })
+
+
+@login_required
+@user_passes_test(es_dt, login_url='/')
+def transferir_ayudante(request, slug):
+    """El DT asigna el rol de ayudante a otro miembro."""
+    equipo = get_object_or_404(Equipo, slug=slug)
+
+    membresia_dt = Membresia.objects.filter(
+        usuario=request.user,
+        equipo=equipo,
+        rol='DT',
+        activo=True
+    ).first()
+
+    if not membresia_dt:
+        messages.error(request, 'Solo el DT puede asignar al ayudante.')
+        return redirect('equipos:lista_miembros', slug=slug)
+
+    candidatos = Membresia.objects.filter(
+        equipo=equipo,
+        activo=True
+    ).exclude(usuario=request.user).select_related('usuario')
+
+    if request.method == 'POST':
+        nuevo_ayudante_id = request.POST.get('nuevo_ayudante')
+
+        if nuevo_ayudante_id == 'ninguno':
+            # Quitar el rol de ayudante a quien lo tenga
+            Membresia.objects.filter(
+                equipo=equipo,
+                rol='AYUDANTE'
+            ).update(rol='JUGADOR')
+
+            # Sincronizar los perfiles afectados
+            for m in Membresia.objects.filter(equipo=equipo, activo=True):
+                sincronizar_rol_perfil(m.usuario)
+
+            messages.success(request, 'Ya no hay ayudante en el equipo.')
+            return redirect('equipos:lista_miembros', slug=slug)
+
+        try:
+            nuevo_ayudante = Membresia.objects.get(
+                pk=nuevo_ayudante_id,
+                equipo=equipo,
+                activo=True
+            )
+        except Membresia.DoesNotExist:
+            messages.error(request, 'El miembro seleccionado no existe.')
+            return redirect('equipos:transferir_ayudante', slug=slug)
+
+        # Quitar el rol de ayudante al actual
+        Membresia.objects.filter(
+            equipo=equipo,
+            rol='AYUDANTE'
+        ).update(rol='JUGADOR')
+
+        # Asignar el nuevo
+        nuevo_ayudante.rol = 'AYUDANTE'
+        nuevo_ayudante.save()
+
+        # Sincronizar los perfiles afectados
+        for m in Membresia.objects.filter(equipo=equipo, activo=True):
+            sincronizar_rol_perfil(m.usuario)
+
+        messages.success(
+            request,
+            f'¡{nuevo_ayudante.usuario.username} es el nuevo ayudante de {equipo.nombre}!'
+        )
+        return redirect('equipos:lista_miembros', slug=slug)
+
+    ayudante_actual = Membresia.objects.filter(
+        equipo=equipo,
+        rol='AYUDANTE',
+        activo=True
+    ).first()
+
+    return render(request, 'equipos/transferir_ayudante.html', {
+        'equipo': equipo,
+        'candidatos': candidatos,
+        'ayudante_actual': ayudante_actual,
+    })
+
+
+@login_required
+def salir_equipo(request, slug):
+    """Un miembro sale del equipo."""
+    equipo = get_object_or_404(Equipo, slug=slug)
+
+    membresia = Membresia.objects.filter(
+        usuario=request.user,
+        equipo=equipo,
+        activo=True
+    ).first()
+
+    if not membresia:
+        messages.error(request, 'No sos miembro de ese equipo.')
+        return redirect('equipos:mis_equipos')
+
+    if membresia.rol == 'DT':
+        otros_miembros = Membresia.objects.filter(
+            equipo=equipo,
+            activo=True
+        ).exclude(usuario=request.user).count()
+
+        if otros_miembros > 0:
+            messages.warning(
+                request,
+                'Antes de salir, transferí el mando a otro miembro o asigná un nuevo DT.'
+            )
+            return redirect('equipos:transferir_dt', slug=slug)
+
+    if request.method == 'POST':
+        membresia.activo = False
+        membresia.save()
+
+        if request.user.perfil.equipo_activo == equipo:
+            siguiente = Membresia.objects.filter(
+                usuario=request.user,
+                activo=True
+            ).first()
+
+            if siguiente:
+                request.user.perfil.equipo_activo = siguiente.equipo
+            else:
+                request.user.perfil.equipo_activo = None
+
+            request.user.perfil.save()
+            sincronizar_rol_perfil(request.user)
+
+        messages.success(request, f'Saliste de {equipo.nombre}.')
+        return redirect('equipos:mis_equipos')
+
+    return render(request, 'equipos/salir_equipo.html', {
+        'equipo': equipo,
+        'membresia': membresia,
+    })
+
+
+@login_required
+@user_passes_test(es_dt, login_url='/')
+def expulsar_miembro(request, slug, membresia_id):
+    """El DT expulsa a un miembro."""
+    equipo = get_object_or_404(Equipo, slug=slug)
+
+    if not Membresia.objects.filter(
+        usuario=request.user,
+        equipo=equipo,
+        rol='DT',
+        activo=True
+    ).exists():
+        messages.error(request, 'Solo el DT puede expulsar miembros.')
+        return redirect('equipos:lista_miembros', slug=slug)
+
+    membresia = get_object_or_404(Membresia, pk=membresia_id, equipo=equipo)
+
+    if membresia.usuario == request.user:
+        messages.error(request, 'No podés expulsarte a vos mismo. Usá "Salir del equipo".')
+        return redirect('equipos:lista_miembros', slug=slug)
+
+    if request.method == 'POST':
+        membresia.activo = False
+        membresia.save()
+
+        if membresia.usuario.perfil.equipo_activo == equipo:
+            siguiente = Membresia.objects.filter(
+                usuario=membresia.usuario,
+                activo=True
+            ).first()
+
+            if siguiente:
+                membresia.usuario.perfil.equipo_activo = siguiente.equipo
+            else:
+                membresia.usuario.perfil.equipo_activo = None
+
+            membresia.usuario.perfil.save()
+            sincronizar_rol_perfil(membresia.usuario)
+
+        messages.success(request, f'{membresia.usuario.username} fue expulsado del equipo.')
+        return redirect('equipos:lista_miembros', slug=slug)
+
+    return render(request, 'equipos/expulsar_miembro.html', {
+        'equipo': equipo,
+        'membresia': membresia,
+    })

@@ -1,0 +1,41 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Salir de {{ equipo.nombre }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0"><i class="fas fa-sign-out-alt"></i> Salir del equipo</h4>
+            </div>
+            <div class="card-body text-center">
+                <p>¿Seguro que querés salir de <strong>{{ equipo.nombre }}</strong>?</p>
+                <p class="text-muted">
+                    Tu rol actual es <strong>{{ membresia.get_rol_display }}</strong>.
+                    <br>
+                    Tus estadísticas y asistencias quedan guardadas.
+                </p>
+
+                {% if membresia.rol == 'DT' %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Como sos DT, antes de salir tenés que transferir el mando a otro miembro.
+                </div>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-sign-out-alt"></i> Sí, salir
+                    </button>
+                    <a href="{% url 'equipos:detalle' equipo.slug %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancelar
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

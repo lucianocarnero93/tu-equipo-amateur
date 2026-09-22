@@ -1,0 +1,50 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Transferir mando - {{ equipo.nombre }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-warning text-dark">
+                <h4 class="mb-0"><i class="fas fa-exchange-alt"></i> Transferir mando de DT</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Ojo:</strong> Vas a dejar de ser DT de {{ equipo.nombre }}.
+                    El miembro que elijas va a pasar a ser DT, y vos vas a tomar su rol actual.
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="nuevo_dt" class="form-label">
+                            <strong>Elegí al nuevo DT:</strong>
+                        </label>
+                        <select name="nuevo_dt" id="nuevo_dt" class="form-control form-control-lg" required>
+                            <option value="">-- Seleccioná un miembro --</option>
+                            {% for c in candidatos %}
+                            <option value="{{ c.pk }}">
+                                @{{ c.usuario.username }} ({{ c.usuario.get_full_name|default:"Sin nombre" }}) - Rol actual: {{ c.get_rol_display }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-warning btn-lg"
+                                onclick="return confirm('¿Seguro que querés transferir el mando?')">
+                            <i class="fas fa-check"></i> Transferir mando
+                        </button>
+                        <a href="{% url 'equipos:lista_miembros' equipo.slug %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

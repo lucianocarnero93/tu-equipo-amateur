@@ -42,3 +42,30 @@ def get_equipo_activo_o_aviso(request):
         )
 
     return equipo
+
+def sincronizar_rol_perfil(user):
+    """
+    Sincroniza el rol del Perfil con la Membresia del equipo activo.
+
+    Se debe llamar cada vez que:
+    - El usuario cambia de equipo activo.
+    - El usuario se une a un equipo.
+    - Cambia el rol del usuario en el equipo activo.
+    """
+    if not user.is_authenticated:
+        return
+
+    if not hasattr(user, 'perfil'):
+        return
+
+    if not user.perfil.equipo_activo:
+        return
+
+    membresia = user.membresias.filter(
+        equipo=user.perfil.equipo_activo,
+        activo=True
+    ).first()
+
+    if membresia:
+        user.perfil.rol = membresia.rol
+        user.perfil.save()

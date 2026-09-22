@@ -21,6 +21,13 @@ urlpatterns = [
     path('solicitudes/<int:pk>/aceptar/', views.aceptar_solicitud, name='aceptar_solicitud'),
     path('solicitudes/<int:pk>/rechazar/', views.rechazar_solicitud, name='rechazar_solicitud'),
     
+    # Miembros y transferencia (usar rutas específicas ANTES del slug genérico)
+    path('<slug:slug>/miembros/', views.lista_miembros, name='lista_miembros'),
+    path('<slug:slug>/transferir-dt/', views.transferir_dt, name='transferir_dt'),
+    path('<slug:slug>/transferir-ayudante/', views.transferir_ayudante, name='transferir_ayudante'),
+    path('<slug:slug>/salir/', views.salir_equipo, name='salir_equipo'),
+    path('<slug:slug>/expulsar/<int:membresia_id>/', views.expulsar_miembro, name='expulsar_miembro'),
+    
     # Detalle y cambio (SIEMPRE al final)
     path('<slug:slug>/', views.detalle_equipo, name='detalle'),
     path('<slug:slug>/cambiar/', views.cambiar_equipo, name='cambiar'),
