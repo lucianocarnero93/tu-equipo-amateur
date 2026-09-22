@@ -1,0 +1,83 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ titulo }} - Tu Equipo Amateur{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-shield-alt"></i> {{ titulo }}</h4>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">
+                    <i class="fas fa-info-circle"></i> 
+                    Al crear el equipo vas a quedar como <strong>Director Técnico</strong>.
+                    Podés invitar jugadores después con un código.
+                </p>
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            <p class="mb-0">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label for="{{ form.nombre.id_for_label }}" class="form-label">
+                            <strong>{{ form.nombre.label }} *</strong>
+                        </label>
+                        {{ form.nombre }}
+                        {% if form.nombre.errors %}
+                            <div class="text-danger small">{{ form.nombre.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.escudo.id_for_label }}" class="form-label">
+                            {{ form.escudo.label }}
+                        </label>
+                        {{ form.escudo }}
+                        <small class="text-muted d-block">Una imagen cuadrada chica (200x200 aprox). Si no subís, se usan las iniciales.</small>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.color_primario.id_for_label }}" class="form-label">
+                                {{ form.color_primario.label }}
+                            </label>
+                            {{ form.color_primario }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.color_secundario.id_for_label }}" class="form-label">
+                                {{ form.color_secundario.label }}
+                            </label>
+                            {{ form.color_secundario }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.descripcion.id_for_label }}" class="form-label">
+                            {{ form.descripcion.label }}
+                        </label>
+                        {{ form.descripcion }}
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Crear equipo
+                        </button>
+                        <a href="{% url 'equipos:mis_equipos' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

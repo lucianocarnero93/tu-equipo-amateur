@@ -1,0 +1,29 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Rechazar solicitud{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0"><i class="fas fa-times"></i> Rechazar solicitud</h4>
+            </div>
+            <div class="card-body text-center">
+                <p>¿Rechazar a <strong>{{ solicitud.usuario.username }}</strong>?</p>
+                <p class="text-muted">No va a poder unirse al equipo con esta solicitud.</p>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-times"></i> Sí, rechazar
+                    </button>
+                    <a href="{% url 'equipos:lista_solicitudes' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Cancelar
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

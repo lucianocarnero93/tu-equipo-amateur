@@ -1,0 +1,92 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ equipo.nombre }} - Tu Equipo Amateur{% endblock %}
+
+{% block content %}
+<div class="card shadow mb-4" style="border-left: 6px solid {{ equipo.color_primario }};">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-2 text-center">
+                {% if equipo.escudo %}
+                    <img src="{{ equipo.escudo.url }}" alt="Escudo" class="img-fluid" style="max-height: 100px;">
+                {% else %}
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center" 
+                         style="width: 100px; height: 100px; background-color: {{ equipo.color_primario }}; color: white; font-size: 2rem; font-weight: bold;">
+                        {{ equipo.get_iniciales }}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="col-md-10">
+                <h1 class="mb-2">{{ equipo.nombre }}</h1>
+                {% if equipo.descripcion %}
+                    <p class="text-muted mb-2">{{ equipo.descripcion }}</p>
+                {% endif %}
+                <p class="mb-0">
+                    <span class="badge" style="background-color: {{ equipo.color_primario }};">Tu rol: {{ membresia.get_rol_display }}</span>
+                    <span class="badge bg-secondary">{{ equipo.cantidad_jugadores_activos }} jugadores</span>
+                    <span class="badge bg-info">{{ equipo.partidos.count }} partidos</span>
+                    <span class="badge bg-warning text-dark">{{ equipo.anuncios.count }} anuncios</span>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-users fa-3x" style="color: {{ equipo.color_primario }};"></i>
+                <h3 class="mt-2">{{ equipo.cantidad_jugadores_activos }}</h3>
+                <p class="text-muted mb-0">Jugadores activos</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-calendar-alt fa-3x" style="color: {{ equipo.color_primario }};"></i>
+                <h3 class="mt-2">{{ equipo.partidos.count }}</h3>
+                <p class="text-muted mb-0">Partidos agendados</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-bullhorn fa-3x" style="color: {{ equipo.color_primario }};"></i>
+                <h3 class="mt-2">{{ equipo.anuncios.count }}</h3>
+                <p class="text-muted mb-0">Anuncios</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ACCIONES SEGÚN EL ROL -->
+<div class="d-flex gap-2 mt-3 flex-wrap">
+    <a href="{% url 'equipos:mis_equipos' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Volver
+    </a>
+
+    {% if membresia.rol == 'DT' or membresia.rol == 'AYUDANTE' %}
+    <a href="{% url 'equipos:lista_invitaciones' %}" class="btn btn-info">
+        <i class="fas fa-user-plus"></i> Invitaciones
+    </a>
+    <a href="{% url 'equipos:lista_solicitudes' %}" class="btn btn-primary">
+        <i class="fas fa-clipboard-list"></i> Ver solicitudes
+    </a>
+    {% endif %}
+
+    {% if membresia.rol == 'DT' %}
+    <a href="#" class="btn btn-warning disabled" title="Próximamente">
+        <i class="fas fa-edit"></i> Editar equipo (próximamente)
+    </a>
+    {% endif %}
+
+    {% if equipo.id != equipo_activo.id %}
+    <a href="{% url 'equipos:cambiar' equipo.slug %}" class="btn btn-success">
+        <i class="fas fa-exchange-alt"></i> Activar este equipo
+    </a>
+    {% endif %}
+</div>
+{% endblock %}

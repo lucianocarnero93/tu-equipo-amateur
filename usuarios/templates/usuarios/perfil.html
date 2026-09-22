@@ -4,22 +4,18 @@
 
 {% block content %}
 <div class="row">
-    <div class="col-md-4">
+    <!-- Columna izquierda: datos del usuario -->
+    <div class="col-md-4 mb-4">
         <div class="card shadow">
             <div class="card-body text-center">
                 <div class="mb-3">
                     <i class="fas fa-user-circle fa-5x text-primary"></i>
                 </div>
-                <h4>{{ usuario.get_full_name }}</h4>
+                <h4>{{ usuario.get_full_name|default:usuario.username }}</h4>
                 <p class="text-muted">@{{ usuario.username }}</p>
-                <p>
-                    <span class="badge bg-info">
-                        {{ usuario.perfil.get_rol_display }}
-                    </span>
-                </p>
                 <hr>
                 <p>
-                    <i class="fas fa-envelope"></i> {{ usuario.email }}
+                    <i class="fas fa-envelope"></i> {{ usuario.email|default:"Sin email" }}
                 </p>
                 {% if usuario.perfil.telefono %}
                     <p><i class="fas fa-phone"></i> {{ usuario.perfil.telefono }}</p>
@@ -33,42 +29,82 @@
             </div>
         </div>
     </div>
-    
+
+    <!-- Columna derecha: equipos y estadísticas -->
     <div class="col-md-8">
+        <!-- Sección Mis Equipos -->
+        <div class="card shadow mb-4">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-shield-alt"></i> Mis Equipos</h5>
+                <a href="{% url 'equipos:crear' %}" class="btn btn-sm btn-light">
+                    <i class="fas fa-plus"></i> Nuevo equipo
+                </a>
+            </div>
+            <div class="card-body">
+                {% if membresias %}
+                    {% for m in membresias %}
+                    <div class="d-flex align-items-center justify-content-between p-2 mb-2 rounded {% if equipo_activo.id == m.equipo.id %}border border-success border-2{% else %}border{% endif %}">
+                        <div class="d-flex align-items-center">
+                            {% if m.equipo.escudo %}
+                                <img src="{{ m.equipo.escudo.url }}" alt="Escudo" style="height: 40px; margin-right: 12px;">
+                            {% else %}
+                                <div class="rounded-circle d-inline-flex align-items-center justify-content-center me-3"
+                                     style="width: 40px; height: 40px; background-color: {{ m.equipo.color_primario }}; color: white; font-weight: bold;">
+                                    {{ m.equipo.get_iniciales }}
+                                </div>
+                            {% endif %}
+                            <div>
+                                <strong>{{ m.equipo.nombre }}</strong>
+                                <br>
+                                <small class="text-muted">{{ m.get_rol_display }}</small>
+                                {% if equipo_activo.id == m.equipo.id %}
+                                    <span class="badge bg-success ms-2">Activo</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div>
+                            <a href="{% url 'equipos:detalle' m.equipo.slug %}" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            {% if equipo_activo.id != m.equipo.id %}
+                            <a href="{% url 'equipos:cambiar' m.equipo.slug %}" class="btn btn-sm btn-success">
+                                <i class="fas fa-exchange-alt"></i> Activar
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-info-circle"></i> Todavía no pertenecés a ningún equipo.
+                        <br><br>
+                        <a href="{% url 'equipos:crear' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Crear mi primer equipo
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sección Mis Estadísticas (para jugadores) -->
         <div class="card shadow">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header bg-success text-white">
                 <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Mis Estadísticas</h5>
             </div>
             <div class="card-body">
                 <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i> Aquí aparecerán tus estadísticas personales cuando tengas partidos registrados.
+                    <i class="fas fa-info-circle"></i> 
+                    {% if equipo_activo %}
+                        Para ver tus números en <strong>{{ equipo_activo.nombre }}</strong>, andá a "Mi Rendimiento".
+                    {% else %}
+                        Elegí un equipo activo para ver tus números.
+                    {% endif %}
                 </div>
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="stat-card card">
-                            <div class="card-body text-center">
-                                <h3>0</h3>
-                                <p class="text-muted">Partidos Jugados</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="stat-card card">
-                            <div class="card-body text-center">
-                                <h3>0</h3>
-                                <p class="text-muted">Goles</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="stat-card card">
-                            <div class="card-body text-center">
-                                <h3>0</h3>
-                                <p class="text-muted">Asistencias</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                {% if equipo_activo %}
+                <a href="{% url 'estadisticas:mi_rendimiento' %}" class="btn btn-success">
+                    <i class="fas fa-chart-line"></i> Ver mis números
+                </a>
+                {% endif %}
             </div>
         </div>
     </div>

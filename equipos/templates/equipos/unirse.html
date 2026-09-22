@@ -1,0 +1,44 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Unirse a un equipo{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0"><i class="fas fa-sign-in-alt"></i> Unirse a un equipo</h4>
+            </div>
+            <div class="card-body">
+                <p>Ingresá el código que te compartió el DT o el ayudante.</p>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="codigo" class="form-label">
+                            <strong>Código de invitación</strong>
+                        </label>
+                        <input type="text" name="codigo" id="codigo" 
+                               class="form-control form-control-lg text-uppercase"
+                               placeholder="Ej: ABC123XY"
+                               maxlength="10"
+                               required
+                               autofocus>
+                        <small class="text-muted">Sin espacios, solo letras y números.</small>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-check"></i> Unirme al equipo
+                        </button>
+                        <a href="{% url 'equipos:mis_equipos' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Volver
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

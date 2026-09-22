@@ -1,0 +1,74 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Mis Equipos - Tu Equipo Amateur{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h2><i class="fas fa-shield-alt"></i> Mis Equipos</h2>
+    <div>
+        <a href="{% url 'equipos:buscar' %}" class="btn btn-info">
+            <i class="fas fa-search"></i> Buscar equipo
+        </a>
+        <a href="{% url 'equipos:unirse' %}" class="btn btn-success">
+            <i class="fas fa-sign-in-alt"></i> Unirme con código
+        </a>
+        <a href="{% url 'equipos:crear' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Inscribir equipo
+        </a>
+    </div>
+</div>
+
+{% if membresias %}
+<div class="row">
+    {% for m in membresias %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card shadow h-100 {% if equipo_activo.id == m.equipo.id %}border-success border-3{% endif %}">
+            <div class="card-header" style="background-color: {{ m.equipo.color_primario }}; color: white;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        {% if m.equipo.escudo %}
+                            <img src="{{ m.equipo.escudo.url }}" alt="Escudo" style="height: 30px; margin-right: 8px;">
+                        {% else %}
+                            <span class="badge bg-light text-dark">{{ m.equipo.get_iniciales }}</span>
+                        {% endif %}
+                        {{ m.equipo.nombre }}
+                    </h5>
+                    {% if equipo_activo.id == m.equipo.id %}
+                        <span class="badge bg-success">Activo</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <p><strong>Tu rol:</strong> {{ m.get_rol_display }}</p>
+                <p><strong>Jugadores:</strong> {{ m.equipo.cantidad_jugadores_activos }}</p>
+                {% if m.equipo.descripcion %}
+                <p class="text-muted"><small>{{ m.equipo.descripcion }}</small></p>
+                {% endif %}
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'equipos:detalle' m.equipo.slug %}" class="btn btn-sm btn-info">
+                    <i class="fas fa-eye"></i> Ver
+                </a>
+                {% if equipo_activo.id != m.equipo.id %}
+                <a href="{% url 'equipos:cambiar' m.equipo.slug %}" class="btn btn-sm btn-success">
+                    <i class="fas fa-exchange-alt"></i> Activar
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info text-center">
+    <h4><i class="fas fa-info-circle"></i> Todavía no tenés equipos</h4>
+    <p>Podés inscribir tu propio equipo o pedir unirte a uno existente.</p>
+    <a href="{% url 'equipos:crear' %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Inscribir mi primer equipo
+    </a>
+    <a href="{% url 'equipos:buscar' %}" class="btn btn-info">
+        <i class="fas fa-search"></i> Buscar equipo
+    </a>
+</div>
+{% endif %}
+{% endblock %}

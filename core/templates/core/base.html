@@ -30,6 +30,17 @@
                             <i class="fas fa-home"></i> Inicio
                         </a>
                     </li>
+                   <ul class="navbar-nav me-auto">
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'core:home' %}">
+            <i class="fas fa-home"></i> Inicio
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'equipos:mis_equipos' %}">
+            <i class="fas fa-shield-alt"></i> Mis Equipos
+        </a>
+    </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'jugadores:lista' %}">
                             <i class="fas fa-users"></i> Jugadores

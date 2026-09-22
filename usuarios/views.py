@@ -59,5 +59,14 @@ def logout_view(request):
 
 @login_required
 def perfil(request):
-    """Mostrar los datos del usuario logueado"""
-    return render(request, 'usuarios/perfil.html', {'usuario': request.user})
+    """Mostrar los datos del usuario logueado y sus equipos."""
+    # Traer las membresías activas del usuario
+    membresias = request.user.membresias.filter(
+        activo=True
+    ).select_related('equipo').order_by('-fecha_ingreso')
+
+    return render(request, 'usuarios/perfil.html', {
+        'usuario': request.user,
+        'membresias': membresias,
+        'equipo_activo': request.user.perfil.equipo_activo,
+    })

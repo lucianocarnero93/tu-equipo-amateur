@@ -1,0 +1,73 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Buscar equipos{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="fas fa-search"></i> Buscar equipos</h2>
+
+<form method="get" class="mb-4">
+    <div class="input-group input-group-lg">
+        <input type="text" name="q" class="form-control" 
+               placeholder="Buscar equipo por nombre..." 
+               value="{{ query }}"
+               autofocus>
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-search"></i> Buscar
+        </button>
+    </div>
+</form>
+
+{% if equipos %}
+<div class="row">
+    {% for equipo in equipos %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card shadow h-100" style="border-left: 5px solid {{ equipo.color_primario }};">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    {% if equipo.escudo %}
+                        <img src="{{ equipo.escudo.url }}" alt="Escudo" style="height: 50px; margin-right: 12px;">
+                    {% else %}
+                        <div class="rounded-circle d-inline-flex align-items-center justify-content-center me-3"
+                             style="width: 50px; height: 50px; background-color: {{ equipo.color_primario }}; color: white; font-weight: bold; font-size: 1.2rem;">
+                            {{ equipo.get_iniciales }}
+                        </div>
+                    {% endif %}
+                    <div>
+                        <h5 class="mb-0">{{ equipo.nombre }}</h5>
+                        <small class="text-muted">{{ equipo.cantidad_jugadores_activos }} jugadores</small>
+                    </div>
+                </div>
+                {% if equipo.descripcion %}
+                    <p class="text-muted small">{{ equipo.descripcion|truncatewords:15 }}</p>
+                {% endif %}
+            </div>
+            <div class="card-footer">
+                {% if equipo.id in equipos_miembro %}
+                    <span class="badge bg-success">Ya sos miembro</span>
+                {% elif equipo.id in solicitudes_pendientes %}
+                    <span class="badge bg-warning text-dark">Solicitud pendiente</span>
+                {% else %}
+                    <a href="{% url 'equipos:solicitar' equipo.slug %}" class="btn btn-primary w-100">
+                        <i class="fas fa-paper-plane"></i> Pedir unirme
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info text-center">
+    <i class="fas fa-info-circle"></i> 
+    {% if query %}
+        No hay equipos que coincidan con "{{ query }}".
+    {% else %}
+        No hay equipos creados todavía.
+    {% endif %}
+</div>
+{% endif %}
+
+<a href="{% url 'equipos:mis_equipos' %}" class="btn btn-secondary">
+    <i class="fas fa-arrow-left"></i> Volver
+</a>
+{% endblock %}

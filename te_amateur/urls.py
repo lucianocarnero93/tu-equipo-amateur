@@ -23,12 +23,14 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('core.urls')),
     path('usuarios/', include('usuarios.urls')),
+    path('equipos/', include('equipos.urls')),
     path('jugadores/', include('jugadores.urls')),
     path('partidos/', include('partidos.urls')),  
     path('asistencias/', include('asistencias.urls')),
     path('alineaciones/', include('alineaciones.urls')),
     path('estadisticas/', include('estadisticas.urls')),
     path('comunicacion/', include('comunicacion.urls')),
+    
 ]
 
 if settings.DEBUG:

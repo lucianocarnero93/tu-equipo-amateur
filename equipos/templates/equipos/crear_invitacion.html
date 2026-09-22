@@ -1,0 +1,49 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Crear invitación - {{ equipo.nombre }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-user-plus"></i> Nueva invitación</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <strong>Equipo:</strong> {{ equipo.nombre }}
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="{{ form.rol_asignado.id_for_label }}" class="form-label">
+                            {{ form.rol_asignado.label }}
+                        </label>
+                        {{ form.rol_asignado }}
+                        <small class="text-muted">¿Qué rol va a tener la persona que use este código?</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.usos_maximos.id_for_label }}" class="form-label">
+                            {{ form.usos_maximos.label }}
+                        </label>
+                        {{ form.usos_maximos }}
+                        <small class="text-muted">{{ form.usos_maximos.help_text }}</small>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check"></i> Generar código
+                        </button>
+                        <a href="{% url 'equipos:lista_invitaciones' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,107 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Invitaciones - {{ equipo.nombre }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-user-plus"></i> Invitaciones de {{ equipo.nombre }}</h2>
+    <a href="{% url 'equipos:crear_invitacion' %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Nueva invitación
+    </a>
+</div>
+
+<div class="alert alert-info">
+    <i class="fas fa-info-circle"></i> 
+    Compartí el código con quien quieras invitar. Podés mandarlo por WhatsApp, Telegram, etc.
+</div>
+
+{% if invitaciones %}
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Código</th>
+                <th>Rol</th>
+                <th>Usos</th>
+                <th>Estado</th>
+                <th>Creada</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for inv in invitaciones %}
+            <tr>
+                <td>
+                    <code class="text-primary fs-5">{{ inv.codigo }}</code>
+                    <button class="btn btn-sm btn-outline-secondary ms-2" 
+                            onclick="copiarCodigo('{{ inv.codigo }}')"
+                            title="Copiar al portapapeles">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </td>
+                <td>{{ inv.get_rol_asignado_display }}</td>
+                <td>
+                    {{ inv.usos_actuales }}
+                    {% if inv.usos_maximos > 0 %}/ {{ inv.usos_maximos }}{% else %} / ∞{% endif %}
+                </td>
+                <td>
+                    {% if inv.es_valida %}
+                        <span class="badge bg-success">Activa</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Inactiva</span>
+                    {% endif %}
+                </td>
+                <td>{{ inv.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                <td>
+                    {% if inv.es_valida %}
+                    <a href="https://wa.me/?text={{ '¡Sumate al equipo '|urlencode }}{{ equipo.nombre|urlencode }}{{ '! Usá este código de invitación: '|urlencode }}{{ inv.codigo|urlencode }}{{ ' %0A%0A Ingresá en: http://127.0.0.1:8000/equipos/unirse/'|urlencode }}"
+                       target="_blank"
+                       class="btn btn-sm btn-success"
+                       title="Compartir por WhatsApp">
+                        <i class="fab fa-whatsapp"></i> WhatsApp
+                    </a>
+                    <a href="{% url 'equipos:desactivar_invitacion' inv.pk %}" class="btn btn-sm btn-danger">
+                        <i class="fas fa-ban"></i> Desactivar
+                    </a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-warning text-center">
+    <i class="fas fa-info-circle"></i> No hay invitaciones creadas. Creá la primera con el botón de arriba.
+</div>
+{% endif %}
+
+<a href="{% url 'equipos:detalle' equipo.slug %}" class="btn btn-secondary">
+    <i class="fas fa-arrow-left"></i> Volver al equipo
+</a>
+
+<!-- Toast para feedback -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="toastCopiado" class="toast align-items-center text-white bg-success border-0" role="alert">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="fas fa-check"></i> ¡Código copiado!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+<script>
+function copiarCodigo(codigo) {
+    navigator.clipboard.writeText(codigo).then(function() {
+        // Mostrar toast
+        const toastEl = document.getElementById('toastCopiado');
+        const toast = new bootstrap.Toast(toastEl, { delay: 2000 });
+        toast.show();
+    }).catch(function(err) {
+        alert('No se pudo copiar. Copiá manualmente: ' + codigo);
+    });
+}
+</script>
+{% endblock %}
